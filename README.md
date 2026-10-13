@@ -5,7 +5,7 @@ An ASP.NET Core Web API that generates A4 PDF documents from an HTML fragment or
 ## Features
 
 - Convert submitted HTML into a PDF using the shared project template.
-- Render a URL and preserve its page body, stylesheets, and scripts.
+- Render a URL using the loaded page, preserving its styles, scripts, and runtime DOM state.
 - Optionally select one element from a URL page with a CSS selector, such as `#root`, `main`, `article`, or `section`.
 - Return the generated document as `application/pdf`.
 
@@ -55,7 +55,7 @@ Content-Type: application/json
 }
 ```
 
-The API renders the URL, then uses the page body and its stylesheet and script elements from the document head. The page URL is used as the base URL so relative resources can resolve.
+The API renders the loaded page directly, so its stylesheets, scripts, and runtime DOM state remain available while generating the PDF. Screen media styles are used for URL rendering.
 
 #### Convert one element from a page
 
@@ -69,7 +69,7 @@ Content-Type: application/json
 }
 ```
 
-`selector` is optional and accepts a CSS selector. For example, use `main`, `article`, or `section` instead of `#root` when that is the element you want. The matching element, including its outer tag, is rendered. If the selector is invalid or does not match an element, the API returns `400 Bad Request`. When omitted, the whole page body is rendered.
+`selector` is optional and accepts a CSS selector. For example, use `main`, `article`, or `section` instead of `#root` when that is the element you want. The matching element is rendered in its original page context, including ancestor styling; unrelated sibling content is hidden. If the selector is invalid or does not match an element, the API returns `400 Bad Request`. When omitted, the whole page is rendered.
 
 The request examples in [`theseOn.PDF/theseOn.PDF.http`](theseOn.PDF/theseOn.PDF.http) can be used with the VS Code REST Client extension or a compatible HTTP editor.
 

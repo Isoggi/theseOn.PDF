@@ -1,4 +1,3 @@
-using System.Text.Encodings.Web;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 
@@ -24,11 +23,6 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
 
         try
         {
-            string content;
-            var pageStyles = string.Empty;
-            var pageScripts = string.Empty;
-            string? baseUrl = null;
-
             if (url is not null)
             {
                 var sourceUri = new Uri(url, UriKind.Absolute);
@@ -43,47 +37,55 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
                     WaitUntil = [WaitUntilNavigation.Networkidle2]
                 }).WaitAsync(cancellationToken);
 
-                if (string.IsNullOrWhiteSpace(selector))
+                await page.EmulateMediaTypeAsync(MediaType.Screen);
+                if (!string.IsNullOrWhiteSpace(selector))
                 {
-                    content = await page.EvaluateExpressionAsync<string>(
-                        "document.body ? document.body.innerHTML : ''").WaitAsync(cancellationToken);
-                }
-                else
-                {
-                    var selectedContent = await page.EvaluateFunctionAsync<string?>(
+                    await page.WaitForSelectorAsync(selector).WaitAsync(cancellationToken);
+
+                    var selectedElementFound = await page.EvaluateFunctionAsync<bool>(
                         """
                         selector => {
                             try {
-                                return document.querySelector(selector)?.outerHTML ?? null;
+                                let element = document.querySelector(selector);
+                                if (!element) {
+                                    return false;
+                                }
+
+                                while (element !== document.body) {
+                                    const parent = element.parentElement;
+                                    if (!parent) {
+                                        break;
+                                    }
+
+                                    for (const sibling of parent.children) {
+                                        if (sibling !== element) {
+                                            sibling.style.setProperty('display', 'none', 'important');
+                                        }
+                                    }
+
+                                    element = parent;
+                                }
+
+                                return true;
                             } catch {
-                                return null;
+                                return false;
                             }
                         }
                         """,
                         selector).WaitAsync(cancellationToken);
 
-                    if (selectedContent is null)
+                    if (!selectedElementFound)
                     {
                         return null;
                     }
-
-                    content = selectedContent;
                 }
 
-                pageStyles = await page.EvaluateExpressionAsync<string>(
-                    "Array.from(document.head.querySelectorAll('style, link[rel~=\"stylesheet\"]'), element => element.outerHTML).join('\\n')")
-                    .WaitAsync(cancellationToken);
-                pageScripts = await page.EvaluateExpressionAsync<string>(
-                    "Array.from(document.head.querySelectorAll('script'), element => element.outerHTML).join('\\n')")
-                    .WaitAsync(cancellationToken);
-                baseUrl = page.Url;
+                return await page.PdfDataAsync(CreatePdfOptions()).WaitAsync(cancellationToken);
             }
-            else
-            {
-                content = html ?? throw new ArgumentException(
-                    "HTML content is required when a URL is not provided.",
-                    nameof(html));
-            }
+
+            var content = html ?? throw new ArgumentException(
+                "HTML content is required when a URL is not provided.",
+                nameof(html));
 
             var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "PdfTemplate.html");
             var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
@@ -97,27 +99,19 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
                     $"{StylesPlaceholder}, and {ScriptsPlaceholder}.");
             }
 
-            var baseTag = baseUrl is null
-                ? string.Empty
-                : $"<base href=\"{HtmlEncoder.Default.Encode(baseUrl)}\">";
             var document = template
-                .Replace(BaseUrlPlaceholder, baseTag, StringComparison.Ordinal)
-                .Replace(StylesPlaceholder, pageStyles, StringComparison.Ordinal)
+                .Replace(BaseUrlPlaceholder, string.Empty, StringComparison.Ordinal)
+                .Replace(StylesPlaceholder, string.Empty, StringComparison.Ordinal)
                 .Replace(ContentPlaceholder, content, StringComparison.Ordinal);
-            document = document.Replace(ScriptsPlaceholder, pageScripts, StringComparison.Ordinal);
-            Console.WriteLine(document);
+            document = document.Replace(ScriptsPlaceholder, string.Empty, StringComparison.Ordinal);
+
             await page.SetContentAsync(document, new NavigationOptions
             {
                 Timeout = NavigationTimeoutMilliseconds,
                 WaitUntil = [WaitUntilNavigation.Networkidle2]
             }).WaitAsync(cancellationToken);
 
-            return await page.PdfDataAsync(new PdfOptions
-            {
-                Format = PaperFormat.A4,
-                PrintBackground = true,
-                PreferCSSPageSize = true,
-            }).WaitAsync(cancellationToken);
+            return await page.PdfDataAsync(CreatePdfOptions()).WaitAsync(cancellationToken);
         }
         finally
         {
@@ -140,4 +134,11 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
         await browserFetcher.DownloadAsync();
         return await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
     }
+
+    private static PdfOptions CreatePdfOptions() => new()
+    {
+        Format = PaperFormat.A4,
+        PrintBackground = true,
+        PreferCSSPageSize = true,
+    };
 }
