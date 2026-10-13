@@ -1,0 +1,39 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Aa]rtifacts/
+[Ll]og/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+
+# .NET / NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Test results and coverage
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+coverage/
+
+# Rider / ReSharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*~
+*.swp

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    {{baseUrl}}
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        html {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #222;
+        }
+
+        body {
+            margin: 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        img, table {
+            max-width: 100%;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.4rem;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+    </style>
+    {{pageStyles}}
+</head>
+<body>
+    {{content}}
+    {{pageScripts}}
+</body>
+</html>

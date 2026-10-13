@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "theseOn.PDF", "theseOn.PDF\theseOn.PDF.csproj", "{99662E1B-2217-465F-B0BD-00FB55401122}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{99662E1B-2217-465F-B0BD-00FB55401122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99662E1B-2217-465F-B0BD-00FB55401122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99662E1B-2217-465F-B0BD-00FB55401122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99662E1B-2217-465F-B0BD-00FB55401122}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {648110E5-E901-4E2E-9B84-6CD8E1F07137}
+	EndGlobalSection
+EndGlobal

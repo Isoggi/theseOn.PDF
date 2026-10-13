@@ -1,0 +1,27 @@
+@theseOn.PDF_HostAddress = http://localhost:5227
+
+### Generate a PDF from an HTML fragment
+POST {{theseOn.PDF_HostAddress}}/api/pdf
+Content-Type: application/json
+
+{
+  "html": "<h1>Invoice</h1><p>Generated using the shared PDF template.</p>"
+}
+
+###
+### Generate a PDF from a URL
+POST {{theseOn.PDF_HostAddress}}/api/pdf
+Content-Type: application/json
+
+{
+  "url": "https://example.com"
+}
+
+###
+### Invalid request: exactly one source is required
+POST {{theseOn.PDF_HostAddress}}/api/pdf
+Content-Type: application/json
+
+{}
+
+###
