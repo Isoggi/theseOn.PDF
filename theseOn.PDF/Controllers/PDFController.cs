@@ -32,6 +32,16 @@ namespace theseOn.PDF.Controllers
                 });
             }
 
+            if (hasHtml && !string.IsNullOrWhiteSpace(request.Selector))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Invalid PDF request",
+                    Detail = "The 'selector' field can only be used with a URL."
+                });
+            }
+
             Uri? sourceUri = null;
             if (hasUrl &&
                 (!Uri.TryCreate(request.Url, UriKind.Absolute, out sourceUri) ||
@@ -49,7 +59,18 @@ namespace theseOn.PDF.Controllers
             var pdf = await pdfGenerator.GenerateAsync(
                 request.Html,
                 sourceUri?.AbsoluteUri,
+                request.Selector,
                 cancellationToken);
+
+            if (pdf is null)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Element not found",
+                    Detail = "The CSS selector is invalid or did not match an element on the page."
+                });
+            }
 
             return File(pdf, "application/pdf", string.Format("{0}.pdf", sourceUri?.Host ?? "document"));
         }

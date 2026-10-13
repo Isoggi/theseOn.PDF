@@ -13,9 +13,10 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
     private const int NavigationTimeoutMilliseconds = 30_000;
     private readonly Lazy<Task<IBrowser>> _browser = new(LaunchBrowserAsync);
 
-    public async Task<byte[]> GenerateAsync(
+    public async Task<byte[]?> GenerateAsync(
         string? html,
         string? url,
+        string? selector,
         CancellationToken cancellationToken)
     {
         var browser = await _browser.Value.WaitAsync(cancellationToken);
@@ -42,10 +43,33 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
                     WaitUntil = [WaitUntilNavigation.Networkidle2]
                 }).WaitAsync(cancellationToken);
 
-                await page.WaitForSelectorAsync("main"); // or App wrapper
+                if (string.IsNullOrWhiteSpace(selector))
+                {
+                    content = await page.EvaluateExpressionAsync<string>(
+                        "document.body ? document.body.innerHTML : ''").WaitAsync(cancellationToken);
+                }
+                else
+                {
+                    var selectedContent = await page.EvaluateFunctionAsync<string?>(
+                        """
+                        selector => {
+                            try {
+                                return document.querySelector(selector)?.outerHTML ?? null;
+                            } catch {
+                                return null;
+                            }
+                        }
+                        """,
+                        selector).WaitAsync(cancellationToken);
 
-                content = await page.EvaluateExpressionAsync<string>(
-                    "document.body ? document.body.innerHTML : ''").WaitAsync(cancellationToken);
+                    if (selectedContent is null)
+                    {
+                        return null;
+                    }
+
+                    content = selectedContent;
+                }
+
                 pageStyles = await page.EvaluateExpressionAsync<string>(
                     "Array.from(document.head.querySelectorAll('style, link[rel~=\"stylesheet\"]'), element => element.outerHTML).join('\\n')")
                     .WaitAsync(cancellationToken);

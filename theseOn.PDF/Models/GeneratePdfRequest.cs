@@ -8,4 +8,10 @@ public sealed record GeneratePdfRequest
 
     /// <summary>An absolute HTTP or HTTPS URL whose rendered body is placed in the shared PDF template.</summary>
     public string? Url { get; init; }
+
+    /// <summary>
+    /// Optional CSS selector for extracting one element from the rendered URL page.
+    /// When omitted, the entire body is rendered.
+    /// </summary>
+    public string? Selector { get; init; }
 }

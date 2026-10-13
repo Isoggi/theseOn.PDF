@@ -14,7 +14,8 @@ POST {{theseOn.PDF_HostAddress}}/api/pdf
 Content-Type: application/json
 
 {
-  "url": "https://example.com"
+  "url": "https://example.com",
+  "selector": "main"
 }
 
 ###
