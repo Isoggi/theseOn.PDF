@@ -56,11 +56,12 @@ namespace theseOn.PDF.Controllers
                 });
             }
 
-            var pdf = await pdfGenerator.GenerateAsync(
-                request.Html,
-                sourceUri?.AbsoluteUri,
-                request.Selector,
-                cancellationToken);
+            var pdf = hasHtml ? await pdfGenerator.GenerateAsync(
+                html: request.Html,
+                cancellationToken: cancellationToken) : await pdfGenerator.GenerateAsync(
+                url: sourceUri!.AbsoluteUri,
+                selector: request.Selector,
+                cancellationToken: cancellationToken);
 
             if (pdf is null)
             {
