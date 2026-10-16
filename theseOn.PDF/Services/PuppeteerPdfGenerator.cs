@@ -12,7 +12,17 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
     private const int NavigationTimeoutMilliseconds = 30_000;
     private readonly Lazy<Task<IBrowser>> _browser = new(LaunchBrowserAsync);
 
-    public async Task<byte[]?> GenerateAsync(
+    public async Task<Stream?> GenerateAsync(string? html, CancellationToken cancellationToken)
+    {
+        return await GenerateAsync(html, null, null, cancellationToken);
+    }
+
+    public async Task<Stream?> GenerateAsync(string? url, string? selector, CancellationToken cancellationToken)
+    {
+        return await GenerateAsync(null, url, selector, cancellationToken);
+    }
+
+    public async Task<Stream?> GenerateAsync(
         string? html,
         string? url,
         string? selector,
@@ -80,7 +90,7 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
                     }
                 }
 
-                return await page.PdfDataAsync(CreatePdfOptions()).WaitAsync(cancellationToken);
+                return await page.PdfStreamAsync(CreatePdfOptions()).WaitAsync(cancellationToken);
             }
 
             var content = html ?? throw new ArgumentException(
@@ -111,7 +121,7 @@ public sealed class PuppeteerPdfGenerator : IPdfGenerator, IAsyncDisposable
                 WaitUntil = [WaitUntilNavigation.Networkidle2]
             }).WaitAsync(cancellationToken);
 
-            return await page.PdfDataAsync(CreatePdfOptions()).WaitAsync(cancellationToken);
+            return await page.PdfStreamAsync(CreatePdfOptions()).WaitAsync(cancellationToken);
         }
         finally
         {
