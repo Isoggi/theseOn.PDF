@@ -1,9 +1,11 @@
+using theseOn.PDF.Middlewares;
 using theseOn.PDF.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddOutputCache();
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddSingleton<IPdfGenerator, PuppeteerPdfGenerator>();
@@ -14,6 +16,8 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseOutputCache();
+app.UseMiddleware<IdempotencyMiddleware>();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 

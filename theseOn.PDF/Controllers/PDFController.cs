@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using theseOn.PDF.Models;
 using theseOn.PDF.Services;
 
@@ -8,6 +9,14 @@ namespace theseOn.PDF.Controllers
     [ApiController]
     public sealed class PDFController(IPdfGenerator pdfGenerator) : ControllerBase
     {
+        [HttpGet("{id}")]
+        [OutputCache(Duration = 60)]
+        public async Task<IActionResult> GetPDF(int id)
+        {
+
+            return Ok();
+        }
+
         /// <summary>Generates an A4 PDF from supplied HTML or a web page URL.</summary>
         /// <param name="request">The HTML fragment or absolute HTTP(S) URL to render.</param>
         /// <param name="cancellationToken">Cancels the request when the client disconnects.</param>
@@ -56,11 +65,12 @@ namespace theseOn.PDF.Controllers
                 });
             }
 
-            var pdf = await pdfGenerator.GenerateAsync(
-                request.Html,
-                sourceUri?.AbsoluteUri,
-                request.Selector,
-                cancellationToken);
+            var pdf = hasHtml ? await pdfGenerator.GenerateAsync(
+                html: request.Html,
+                cancellationToken: cancellationToken) : await pdfGenerator.GenerateAsync(
+                url: sourceUri!.AbsoluteUri,
+                selector: request.Selector,
+                cancellationToken: cancellationToken);
 
             if (pdf is null)
             {
